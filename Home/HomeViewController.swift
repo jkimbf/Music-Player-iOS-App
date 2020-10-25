@@ -40,8 +40,27 @@ extension HomeViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         switch kind {
         case UICollectionView.elementKindSectionHeader:
+            guard let item = trackManager.todaysTrack else {
+                return UICollectionReusableView()
+            }
+            
+            guard let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "TrackCollectionHeaderView", for: indexPath) as? TrackCollectionHeaderView else {
+                return UICollectionReusableView()
+            }
+            
+            header.update(with: item)
+            header.tapHandler = { item -> Void in
+                // Player를 띄운다
+                // Getting storyboard named "Player"
+                let playerStoryboard = UIStoryboard.init(name: "Player", bundle: nil)
+                // ViewController를 identifier 이용해서 가져오기
+                guard let playerVC = playerStoryboard.instantiateViewController(identifier: "PlayerViewController") as? PlayerViewController else { return }
+                playerVC.simplePlayer.replaceCurrentItem(with: item)
+                self.present(playerVC, animated: true, completion: nil)
+            }
+            
             // TODO: 헤더 구성하기
-            return UICollectionReusableView()
+            return header
         default:
             return UICollectionReusableView()
         }
@@ -52,6 +71,18 @@ extension HomeViewController: UICollectionViewDelegate {
     // 클릭했을때 어떻게 할까?
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         // TODO: 곡 클릭시 플레이어뷰 띄우기
+        
+        // Getting storyboard named "Player"
+        let playerStoryboard = UIStoryboard.init(name: "Player", bundle: nil)
+        // ViewController를 identifier 이용해서 가져오기
+        guard let playerVC = playerStoryboard.instantiateViewController(identifier: "PlayerViewController") as? PlayerViewController else { return }
+        
+        // trackManager로 부터 현재 재생중인 아이템 정보 불러오기
+        let item = trackManager.tracks[indexPath.item]
+        
+        // 받아온 아이템 player에 설정해주기
+        playerVC.simplePlayer.replaceCurrentItem(with: item)
+        present(playerVC, animated: true, completion: nil)
     }
 }
 
